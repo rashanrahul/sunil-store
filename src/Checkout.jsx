@@ -1,7 +1,6 @@
 
 import { useState } from 'react'
 import { supabase } from './lib/supabase'
-import { generateTrackingNumber } from './lib/orderTracking'
 import { useLanguage } from './LanguageContext'
 
 export default function Checkout({ cart, cartTotal, formatPrice, onBack, onSuccess }) {
@@ -45,29 +44,17 @@ export default function Checkout({ cart, cartTotal, formatPrice, onBack, onSucce
       return
     }
 
-    const orderNumber = Number(data?.order_number)
-    const trackingNumber = generateTrackingNumber(orderNumber || Date.now())
+const trackingNumber = data?.tracking_number
 
-    if (orderNumber) {
-      const { error: trackingError } = await supabase
-        .from('orders')
-        .update({
-          tracking_number: trackingNumber,
-          status: 'Pending',
-        })
-        .eq('order_number', orderNumber)
-
-      if (trackingError) {
-  console.error('Tracking number save failed:', trackingError)
+if (!trackingNumber) {
   setLoading(false)
   setError(
     si
-      ? 'ලුහුබැඳි අංකය සුරැකීමට නොහැකි විය. කරුණාකර නැවත උත්සාහ කරන්න.'
-      : 'Could not save tracking number. Please contact the store.'
+      ? 'ලුහුබැඳි අංකය ලබාගැනීමට නොහැකි විය.'
+      : 'Could not get tracking number. Please contact the store.'
   )
   return
 }
-    }
 
     setLoading(false)
     onSuccess({ ...data, tracking_number: trackingNumber })
